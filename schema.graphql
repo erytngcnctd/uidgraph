@@ -1,0 +1,91 @@
+type ApprovalForAll @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operator: Bytes! # address
+  approved: Boolean! # bool
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PermanentURI @entity(immutable: true) {
+  id: Bytes!
+  value: String! # string
+  tokenId: BigInt! # uint256
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TransferBatch @entity(immutable: true) {
+  id: Bytes!
+  operator: Bytes! # address
+  from: Bytes! # address
+  to: Bytes! # address
+  tokenIds: [BigInt!]! # uint256[]
+  values: [BigInt!]! # uint256[]
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Transfer @entity(immutable: true) {
+  id: Bytes!
+  operator: Bytes! # address
+  from: Bytes! # address
+  to: Bytes! # address
+  tokenId: BigInt! # uint256
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type URI @entity {
+  id: Bytes!
+	from: Bytes!
+  tokenId: BigInt! # uint256
+  metaDataUri: String! # string
+  tokenMetaData: TokenMetaData
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  available: BigInt
+}
+
+type TokenMetaData @entity {
+  id: ID!
+  name: String
+  description: String
+  image: String
+  animation_url: String
+  mimeType: String!
+}
+
+type UidMetaData @entity {
+  id: ID!
+  description: String
+  image: String
+}
+
+type swap @entity(immutable: true) {
+  id: Bytes!
+  erc1155: Bytes! # address
+  amount: BigInt! # uint256
+  value: BigInt! # uint256
+  tokenId: BigInt! # uint256
+  op: BigInt! # uint256
+  swapId: BigInt! # uint256
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+}
+type ungrundId @entity(immutable: true) {
+  id: Bytes!
+  metaDataUri: String! # string
+  uidMetaData: UidMetaData
+  ungrundId: String! # string
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+}

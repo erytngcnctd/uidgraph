@@ -1,0 +1,14 @@
+{
+  "matic": {
+    "Contract": {
+      "address": "0x320354dBf70AB703F8dCCCC0Cf981094edDC075e",
+      "startBlock": 25622246
+    },
+    "wuweiswapv1": {
+      "address": "0x563Ae9F8CEE2dd553C62646e0328bB78B2438170"
+    },
+    "ungrundid": {
+      "address": "0x5341Aeb7F190b0e24A21E69136c6e93e1490f4C1"
+    }
+  }
+}
