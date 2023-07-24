@@ -79,8 +79,9 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
 
   // if (event.params._from.toHexString() == '0x0000000000000000000000000000000000000000') {
   //   asset.available = event.params._value
-  //   asset.save()
+  //   asset.save() 
   // }
+
   transfer.value = event.params._value
   transfer.operator = event.params._operator
   transfer.from = event.params._from
@@ -112,15 +113,22 @@ export function handleTokenMetaData(content: Bytes): void {
   metaData.save()
  }
 
-
-
 export function handleURI(event: URIEvent): void {
-  let entity = new URI(event.transaction.hash.concatI32(event.logIndex.toI32()))
-  const hash = event.params._value.split("//")[1]
+  let entity = URI.load(event.params._tokenId.toString())
+  if (entity == null) {
+    entity = new URI(event.params._tokenId.toString())
+  }
+  let hash = ''
+  if (event.params._value.substring(5,7) == '//') {
+    hash = event.params._value.split("//")[1]
+  }
   entity.tokenMetaData = hash
   entity.metaDataUri = hash
   entity.from = event.transaction.from
-  TokenMetaDataTemplate.create(hash)
+  let tokenMetaData = TokenMetaData.load(hash)
+  if (tokenMetaData == null && hash != '') {
+    TokenMetaDataTemplate.create(hash)
+  }
   entity.tokenId = event.params._tokenId
   entity.blockNumber = event.block.number
   entity.timestamp = event.block.timestamp
