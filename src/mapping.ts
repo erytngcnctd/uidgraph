@@ -14,6 +14,7 @@ import {
   TokenMetaData
 } from "../generated/schema"
 import { json, Bytes, dataSource, log } from "@graphprotocol/graph-ts"
+import { BigInt } from '@graphprotocol/graph-ts'
 import {
   TokenMetaData as TokenMetaDataTemplate
   } from '../generated/templates'
@@ -68,20 +69,22 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
   let transfer = new Transfer(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  // let asset = URI.load(event.params._id)
-  // if (asset === null) asset = new URI(event.params._id)
+  let asset = URI.load(event.params._id.toString())
+  if (asset === null) asset = new URI(event.params._id.toString())
 
-  // if (event.params._to.toHexString() == '0x84398272c77a35e765eff8fcb95af3bf941581a5') {
+  if (event.params._to.toHexString() == '0x84398272c77a35e765eff8fcb95af3bf941581a5' && asset.editions !== null) {
+    asset.editions.minus(event.params._value)
+  }
 
-  //   if (asset.available !== null) asset.available -= new BigInt(event.params._value)
-  //   asset.save()
-  // }
-
-  // if (event.params._from.toHexString() == '0x0000000000000000000000000000000000000000') {
-  //   asset.available = event.params._value
-  //   asset.save() 
-  // }
-
+  if (event.params._from.toHexString() == '0x0000000000000000000000000000000000000000') {
+    asset.from=event.transaction.from 
+    asset.editions = event.params._value
+    asset.tokenId = event.params._id
+    asset.blockNumber = event.block.number
+    asset.timestamp = event.block.timestamp
+    asset.transactionHash = event.transaction.hash
+  }
+  asset.save()
   transfer.value = event.params._value
   transfer.operator = event.params._operator
   transfer.from = event.params._from
@@ -124,14 +127,14 @@ export function handleURI(event: URIEvent): void {
   }
   entity.tokenMetaData = hash
   entity.metaDataUri = hash
-  entity.from = event.transaction.from
+  // entity.from = event.transaction.from
   let tokenMetaData = TokenMetaData.load(hash)
   if (tokenMetaData == null && hash != '') {
     TokenMetaDataTemplate.create(hash)
   }
-  entity.tokenId = event.params._tokenId
-  entity.blockNumber = event.block.number
-  entity.timestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  // entity.tokenId = event.params._tokenId
+  // entity.blockNumber = event.block.number
+  // entity.timestamp = event.block.timestamp
+  // entity.transactionHash = event.transaction.hash
   entity.save()
 }

@@ -601,17 +601,21 @@ export class URI extends Entity {
     this.set("tokenId", Value.fromBigInt(value));
   }
 
-  get metaDataUri(): string {
+  get metaDataUri(): string | null {
     let value = this.get("metaDataUri");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return null;
     } else {
       return value.toString();
     }
   }
 
-  set metaDataUri(value: string) {
-    this.set("metaDataUri", Value.fromString(value));
+  set metaDataUri(value: string | null) {
+    if (!value) {
+      this.unset("metaDataUri");
+    } else {
+      this.set("metaDataUri", Value.fromString(<string>value));
+    }
   }
 
   get tokenMetaData(): string | null {
@@ -670,21 +674,17 @@ export class URI extends Entity {
     this.set("transactionHash", Value.fromBytes(value));
   }
 
-  get available(): BigInt | null {
-    let value = this.get("available");
+  get editions(): BigInt {
+    let value = this.get("editions");
     if (!value || value.kind == ValueKind.NULL) {
-      return null;
+      throw new Error("Cannot return null for a required field.");
     } else {
       return value.toBigInt();
     }
   }
 
-  set available(value: BigInt | null) {
-    if (!value) {
-      this.unset("available");
-    } else {
-      this.set("available", Value.fromBigInt(<BigInt>value));
-    }
+  set editions(value: BigInt) {
+    this.set("editions", Value.fromBigInt(value));
   }
 }
 
@@ -952,6 +952,19 @@ export class swap extends Entity {
 
   set amount(value: BigInt) {
     this.set("amount", Value.fromBigInt(value));
+  }
+
+  get issuer(): Bytes {
+    let value = this.get("issuer");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set issuer(value: Bytes) {
+    this.set("issuer", Value.fromBytes(value));
   }
 
   get value(): BigInt {

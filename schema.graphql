@@ -45,12 +45,13 @@ type URI @entity {
   id: ID!
 	from: Bytes!
   tokenId: BigInt! # uint256
-  metaDataUri: String! # string
+  metaDataUri: String # string
   tokenMetaData: TokenMetaData
   blockNumber: BigInt!
   timestamp: BigInt!
   transactionHash: Bytes!
-  available: BigInt
+  editions: BigInt!
+  royalties: BigInt!
 }
 
 type TokenMetaData @entity {
@@ -72,6 +73,7 @@ type swap @entity(immutable: true) {
   id: Bytes!
   erc1155: Bytes! # address
   amount: BigInt! # uint256
+  issuer: Bytes!
   value: BigInt! # uint256
   tokenId: BigInt! # uint256
   op: BigInt! # uint256
