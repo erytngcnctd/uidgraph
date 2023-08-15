@@ -11,7 +11,9 @@ import {
   TransferBatch,
   Transfer,
   URI, 
-  TokenMetaData
+  TokenMetaData,
+  Holder,
+  Token
 } from "../generated/schema"
 import { json, Bytes, dataSource, log } from "@graphprotocol/graph-ts"
 import { BigInt } from '@graphprotocol/graph-ts'
@@ -27,9 +29,9 @@ export function handleApprovalForAll(event: ApprovalForAllEvent): void {
   entity.operator = event.params._operator
   entity.approved = event.params._approved
 
-  entity.blockNumber = event.block.number
+  entity.block = event.block.number
   entity.timestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.hash = event.transaction.hash
 
   entity.save()
 }
@@ -41,9 +43,9 @@ export function handlePermanentURI(event: PermanentURIEvent): void {
   entity.value = event.params._value
   entity.tokenId = event.params._id
 
-  entity.blockNumber = event.block.number
+  entity.block = event.block.number
   entity.timestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.hash = event.transaction.hash
 
   entity.save()
 }
@@ -58,9 +60,9 @@ export function handleTransferBatch(event: TransferBatchEvent): void {
   transfer.tokenIds = event.params._ids
   transfer.values = event.params._values
 
-  transfer.blockNumber = event.block.number
+  transfer.block = event.block.number
   transfer.timestamp = event.block.timestamp
-  transfer.transactionHash = event.transaction.hash
+  transfer.hash = event.transaction.hash
 
   transfer.save()
 }
@@ -69,33 +71,65 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
   let transfer = new Transfer(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  let asset = URI.load(event.params._id.toString())
-  if (asset === null) asset = new URI(event.params._id.toString())
+  
+  let to =  event.params._to
+  let from =  event.params._from
+  let tokenId = event.params._id
+  let amount = event.params._value
+  let block = event.block.number
+  let timestamp = event.block.timestamp
+  let hash = event.block.hash
 
-  if (event.params._to.toHexString() == '0x84398272c77a35e765eff8fcb95af3bf941581a5' && asset.editions !== null) {
-    asset.editions.minus(event.params._value)
-  }
+  let toId = (tokenId.toString() + "-" + to.toHexString())
+  let fromId = (tokenId.toString() + "-" + from.toHexString())
+  
+  let asset = Token.load(tokenId.toString())
 
-  if (event.params._from.toHexString() == '0x0000000000000000000000000000000000000000') {
-    asset.from=event.transaction.from 
-    asset.editions = event.params._value
-    asset.tokenId = event.params._id
-    asset.blockNumber = event.block.number
-    asset.timestamp = event.block.timestamp
-    asset.transactionHash = event.transaction.hash
+  if (!asset) {
+    asset = new Token(tokenId.toString())
+    asset.creator = to
+    asset.block = block
+    asset.timestamp = timestamp
+    asset.hash = hash
+    asset.editions = amount
+    asset.save()
   }
-  asset.save()
-  transfer.value = event.params._value
+  
+  if (to.toHexString() == '0x84398272c77a35e765eff8fcb95af3bf941581a5' && asset.editions !== null) {
+    asset.editions.minus(amount)
+    asset.save()
+  } 
+
+  transfer.value = amount
   transfer.operator = event.params._operator
-  transfer.from = event.params._from
-  transfer.to = event.params._to
-  transfer.tokenId = event.params._id
+  transfer.from = from
+  transfer.to = to
+  transfer.tokenId = tokenId
 
-  transfer.blockNumber = event.block.number
-  transfer.timestamp = event.block.timestamp
-  transfer.transactionHash = event.transaction.hash
+  transfer.block = block
+  transfer.timestamp = timestamp
+  transfer.hash = hash
 
   transfer.save()
+
+  let holder_to = Holder.load(toId)
+  if (holder_to == null) {
+    holder_to = new Holder(toId);
+    holder_to.tokenId = tokenId;
+    holder_to.address = to;
+    holder_to.amount = BigInt.fromI32(0);
+    holder_to.timestamp = timestamp;
+  }
+  holder_to.timestamp = timestamp;
+  holder_to.amount = holder_to.amount.plus(amount)
+  holder_to.save()
+  
+  let holder_from= Holder.load(fromId)
+  if (holder_from) {
+    holder_from.amount = holder_from.amount.minus(amount)
+    holder_from.timestamp = timestamp;
+    holder_from.save()
+  }
 }
 
 export function handleTokenMetaData(content: Bytes): void {
@@ -117,24 +151,35 @@ export function handleTokenMetaData(content: Bytes): void {
  }
 
 export function handleURI(event: URIEvent): void {
-  let entity = URI.load(event.params._tokenId.toString())
-  if (entity == null) {
-    entity = new URI(event.params._tokenId.toString())
-  }
-  let hash = ''
+  let tokenId = event.params._tokenId
+  let block = event.block.number
+  let timestamp = event.block.timestamp
+  let hash = event.block.hash
+  let uri = new URI(event.transaction.hash.concatI32(event.logIndex.toI32()))
+
+  let ipfs = ''
   if (event.params._value.substring(5,7) == '//') {
-    hash = event.params._value.split("//")[1]
+    ipfs = event.params._value.split("//")[1]
   }
-  entity.tokenMetaData = hash
-  entity.metaDataUri = hash
-  // entity.from = event.transaction.from
-  let tokenMetaData = TokenMetaData.load(hash)
-  if (tokenMetaData == null && hash != '') {
-    TokenMetaDataTemplate.create(hash)
+  uri.tokenId = tokenId
+  uri.tokenMetaData = ipfs
+  uri.metaDataUri = ipfs
+  uri.from = event.transaction.from
+  
+  let token = Token.load(tokenId.toString())
+  if (token){
+    token.metaDataUri = ipfs
+    token.tokenMetaData = ipfs
+    token.save()
   }
-  // entity.tokenId = event.params._tokenId
-  // entity.blockNumber = event.block.number
-  // entity.timestamp = event.block.timestamp
-  // entity.transactionHash = event.transaction.hash
-  entity.save()
+  let tokenMetaData = TokenMetaData.load(ipfs)
+  
+  if (tokenMetaData == null && ipfs != '') {
+    TokenMetaDataTemplate.create(ipfs)
+  }
+
+  uri.block = block
+  uri.timestamp = timestamp
+  uri.hash = hash
+  uri.save()
 }

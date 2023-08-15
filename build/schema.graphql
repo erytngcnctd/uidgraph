@@ -3,18 +3,18 @@ type ApprovalForAll @entity(immutable: true) {
   owner: Bytes! # address
   operator: Bytes! # address
   approved: Boolean! # bool
-  blockNumber: BigInt!
+  block: BigInt!
   timestamp: BigInt!
-  transactionHash: Bytes!
+  hash: Bytes!
 }
 
 type PermanentURI @entity(immutable: true) {
   id: Bytes!
   value: String! # string
   tokenId: BigInt! # uint256
-  blockNumber: BigInt!
+  block: BigInt!
   timestamp: BigInt!
-  transactionHash: Bytes!
+  hash: Bytes!
 }
 
 type TransferBatch @entity(immutable: true) {
@@ -24,9 +24,9 @@ type TransferBatch @entity(immutable: true) {
   to: Bytes! # address
   tokenIds: [BigInt!]! # uint256[]
   values: [BigInt!]! # uint256[]
-  blockNumber: BigInt!
+  block: BigInt!
   timestamp: BigInt!
-  transactionHash: Bytes!
+  hash: Bytes!
 }
 
 type Transfer @entity(immutable: true) {
@@ -36,21 +36,39 @@ type Transfer @entity(immutable: true) {
   to: Bytes! # address
   tokenId: BigInt! # uint256
   value: BigInt! # uint256
-  blockNumber: BigInt!
+  block: BigInt!
   timestamp: BigInt!
-  transactionHash: Bytes!
+  hash: Bytes!
+}
+
+type Token @entity {
+  id: ID!
+  editions: BigInt!
+  creator: Bytes!
+  metaDataUri: String # string
+  tokenMetaData: TokenMetaData
+  timestamp: BigInt!
+  block: BigInt!
+  hash: Bytes!
 }
 
 type URI @entity {
-  id: ID!
+  id: Bytes!
 	from: Bytes!
   tokenId: BigInt! # uint256
   metaDataUri: String # string
   tokenMetaData: TokenMetaData
-  blockNumber: BigInt!
+  block: BigInt!
   timestamp: BigInt!
-  transactionHash: Bytes!
-  editions: BigInt!
+  hash: Bytes!
+}
+
+type Holder @entity {
+  id: ID!
+  address: Bytes!
+  tokenId: BigInt!
+  amount: BigInt!
+  timestamp: BigInt!
 }
 
 type TokenMetaData @entity {
@@ -77,16 +95,16 @@ type swap @entity(immutable: true) {
   tokenId: BigInt! # uint256
   op: BigInt! # uint256
   swapId: BigInt! # uint256
-  blockNumber: BigInt!
+  block: BigInt!
   timestamp: BigInt!
-  transactionHash: Bytes!
+  hash: Bytes!
 }
 type ungrundId @entity {
   id: Bytes!
   metaDataUri: String! # string
   uidMetaData: UidMetaData
   ungrundId: String! # string
-  blockNumber: BigInt!
+  block: BigInt!
   timestamp: BigInt!
-  transactionHash: Bytes!
+  hash: Bytes!
 }

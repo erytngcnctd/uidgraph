@@ -15,9 +15,9 @@ export function handleidLog(event: idLogEvent): void {
   UidMetaDataTemplate.create(hash)
   ungrundid.ungrundId = event.params._subjkt
 
-  ungrundid.blockNumber = event.block.number
+  ungrundid.block = event.block.number
   ungrundid.timestamp = event.block.timestamp
-  ungrundid.transactionHash = event.transaction.hash
+  ungrundid.hash = event.transaction.hash
 
   ungrundid.save()
 }

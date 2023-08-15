@@ -12,8 +12,8 @@ export function handleswapLog(event: swapLogEvent): void {
   swap.value = event.params.value
   swap.op = event.params.op
   swap.swapId = event.params.swapId
-  swap.blockNumber = event.block.number
+  swap.block = event.block.number
   swap.timestamp = event.block.timestamp
-  swap.transactionHash = event.transaction.hash
+  swap.hash = event.transaction.hash
   swap.save()
 }
